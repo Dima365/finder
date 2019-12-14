@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Vivado v2019.2 (64-bit)
+# SW Build 2700185 on Thu Oct 24 18:46:05 MDT 2019
+# IP Build 2699827 on Thu Oct 24 21:16:38 MDT 2019
+# Start of session at: Sat Nov 30 14:11:06 2019
+# Process ID: 12236
+# Current directory: D:/project/finder/parts/mult_baugh_wooley/work_vivado/mult_baugh_wooley.runs/impl_1
+# Command line: vivado.exe -log multiply.vdi -applog -product Vivado -messageDb vivado.pb -mode batch -source multiply.tcl -notrace
+# Log file: D:/project/finder/parts/mult_baugh_wooley/work_vivado/mult_baugh_wooley.runs/impl_1/multiply.vdi
+# Journal file: D:/project/finder/parts/mult_baugh_wooley/work_vivado/mult_baugh_wooley.runs/impl_1\vivado.jou
+#-----------------------------------------------------------
+source multiply.tcl -notrace

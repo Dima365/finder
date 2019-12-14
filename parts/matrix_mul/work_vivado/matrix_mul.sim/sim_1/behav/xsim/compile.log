@@ -1,0 +1,6 @@
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/project/finder/parts/matrix_mul/src/matrix_mul.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module matrix_mul
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/project/finder/parts/matrix_mul/src/matrix_mul_imag.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module matrix_mul_imag
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/project/finder/parts/matrix_mul/sim/test.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module test
