@@ -1,4 +1,0 @@
-vhdl xil_defaultlib  \
-"../../../../matrix_mul_vivado.srcs/sources_1/ip/mult_W18/sim/mult_W18.vhd" \
-
-nosort
