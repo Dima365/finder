@@ -1,12 +1,12 @@
 module multiply #(parameter A_WIDTH=24, B_WIDTH=24)
-(clk, reset, in_valid, out_valid, in_A, in_B, out_C); // C=A*B
+(clk, resetn, in_valid, out_valid, in_A, in_B, out_C); // C=A*B
 
 `ifdef FORMAL
 parameter A_WIDTH = 6;
 parameter B_WIDTH = 6;
 `endif
 
-input clk, reset;
+input clk, resetn;
 input in_valid; // to signify that in_A, in_B are valid, multiplication process can start
 input signed [(A_WIDTH-1):0] in_A;
 input signed [(B_WIDTH-1):0] in_B;
@@ -58,7 +58,7 @@ reg multiply_had_started;
 
 always @(posedge clk)
 begin
-	if(reset) begin
+	if(~resetn) begin
 		MULTIPLICAND_reg <= 0;
 		MULTIPLIER_reg <= 0;
 	end
@@ -99,7 +99,7 @@ generate // duplicates the leafs of the binary tree
 
 		always @(posedge clk)
 		begin
-			if(reset) 
+			if(~resetn) 
 			begin
 				for(pp_index=0; pp_index<SMALLER_WIDTH ; pp_index=pp_index+1)
 					middle_layers[layer][pp_index] <= 0;
@@ -168,7 +168,7 @@ generate // duplicates the leafs of the binary tree
 endgenerate
 
 
-assign out_C = (reset || (MULTIPLICAND_reg == 0) || (MULTIPLIER_reg == 0)) ? 0 :
+assign out_C = (~resetn || (MULTIPLICAND_reg == 0) || (MULTIPLIER_reg == 0)) ? 0 :
 			 	middle_layers[NUM_OF_INTERMEDIATE_LAYERS][0] 
 				+ ((1 << (LARGER_WIDTH-1)) + (1 << (SMALLER_WIDTH-1)));
 
@@ -198,7 +198,7 @@ reg [($clog2(NUM_OF_INTERMEDIATE_LAYERS)-1):0] out_valid_counter; // to track th
 
 always @(posedge clk)
 begin
-	if(reset) 
+	if(~resetn) 
 	begin
 		multiply_had_started <= 0;
 		out_valid <= 0;
@@ -234,13 +234,13 @@ begin
 		sign_bit <= MULTIPLICAND[LARGER_WIDTH-1] ^ MULTIPLIER[SMALLER_WIDTH-1];
 end
 
-initial assume(reset);
+initial assume(~resetn);
 initial assume(in_valid == 0);
 
 
 always @(posedge clk)
 begin
-	if(reset) assert(out_C == 0);
+	if(~resetn) assert(out_C == 0);
 	
 	else if(out_valid) 
 	begin
