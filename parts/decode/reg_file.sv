@@ -14,45 +14,25 @@ module reg_file
     output logic [WIDTH_VECTOR-1:0][N-1:0] rdata
 );
 
-ram_module 
-    #(
-        .WA     (WIDTH_ADDR),
-        .WD     (WIDTH_VECTOR*N)
-    )
-ram_module_i1
-    (
-        .clk       (clk),
-        .we        (we),
-        .addr      (addr),
-        .wdata     (wdata),
-        .rdata     (rdata)
-    );
-
-
-endmodule
-
-module ram_module 
-#(
-    parameter WA = 16,
-    parameter WD = 32
-)
-(
-    input logic clk,    // Clock
-
-    input  logic we,
-    input  logic [WA-1:0] addr,
-    input  logic [WD-1:0] wdata,
-
-    output logic [WD-1:0] rdata    
-);
-logic [WD-1:0] ram [2**WA-1:0];
-
-always_ff @(negedge rstn, posedge clk)
-    if(we) begin 
-        ram[addr] <= wdata;
+generate
+    if(VENDOR == "xilinx")begin
+        sdpRAM_vivado 
+            #(
+                .DSIZE      (WIDTH_VECTOR*N),
+                .ASIZE      (WIDTH_ADDR),
+                .INIT_FILE  ("")
+            )
+        sdpRAM_vivado
+            (
+                .addra      (addr),
+                .addrb      (addr),
+                .dina       (wdata),
+                .clka       (clk),
+                .wea        (we),
+                .enb        (~we),
+                .doutb      (rdata)
+            )
     end
-
-assign rdata = ram[addr];
+endgenerate
 
 endmodule
-
