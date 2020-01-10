@@ -13,6 +13,7 @@ module alu
     input  logic signed [N-1:0] dataB,
 
     output logic valid,
+    output logic zero,
     output logic [N-1:0] data_out
 );
 logic [1:0]        enable_unit;
@@ -20,6 +21,9 @@ logic [1:0][N-1:0] data_unit;
 logic [1:0]        valid_unit;
 logic both_image;
 logic [2*N-1:0] out_C;
+
+assign zero = (data_out == 0) ? 1'b1 : 1'b0;
+
 always_comb
     if(enable_alu)
         case (instr)
