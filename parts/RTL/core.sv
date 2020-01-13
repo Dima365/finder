@@ -3,35 +3,40 @@ module core
     parameter MEM_WA       = 8,
     parameter INSTR_MEM_WA = 8,
     parameter WIDTH_VECTOR = 8, // have to be 2**N
-    parameter N            = 32,
-    parameter WA_RF        = 8
+    parameter N            = 32, //have to N < WIDTH_VECTOR
+    parameter WA_RF        = 8,
+    parameter WA_FIFO      = 8
 )
 (
-    input logic clk,
-    input logic rstn,
+    input  logic clk,
+    input  logic rstn,
 
-    input logic clkf,
-    input logic rstnf,
+    input  logic clkf,
+    input  logic rstnf,
 
-    input logic we,
-    input logic [WIDTH_VECTOR-1:0][N-1:0] wdata
+    output logic fifo_full,
+    input  logic [WIDTH_VECTOR-1:0][N-1:0] fifo_wdata,
+    input  logic fifo_winc,
+    input  logic fifo_wclk,
+    input  logic fifo_wrstn
 );
 localparam WIDTH_INSTR = 3 + 1 + 2*WA_RF + WIDTH_VECTOR;
 
 logic next_instr;
 logic [WIDTH_INSTR-1:0] instr_fet;
-logic jump_com, jump_exe, jump_mem, jump_com_dec, jump_exe_t1;
+logic jump, jump_exe, jump_mem, jump_exe_t1;
 logic we_jump, we_jump_exe, we_jump_mem;
-logic [N-1:0] addr_instr_exe, addr_instr_mem;
+logic [WIDTH_VECTOR-1:0] addr_instr,     addr_instr_dec, 
+logic [WIDTH_VECTOR-1:0] addr_instr_exe, addr_instr_mem;
 
 logic [WA_RF-1:0] addr_rega, addr_rega_dec, addr_rega_exe, addr_rega_mem;
 logic [WA_RF-1:0] addr_regb;
-logic [2:0] com, com_dec;
+logic [3:0] opcode, opcode_dec;
 logic we_mem, we_mem_dec, we_mem_exe;
 logic mem_alu, mem_alu_dec, mem_alu_exe, mem_alu_mem;
 logic [WIDTH_VECTOR-1:0][N-1:0] dataA, dataB;
 
-logic [WIDTH_VECTOR-1:0][N-1:0] rdata_a_rf, rdata_b_rf;
+
 logic [WIDTH_VECTOR-1:0][N-1:0] rdata_a_rf_dec, rdata_b_rf_dec;
 logic [WIDTH_VECTOR-1:0] we_rf, we_rf_dec, we_rf_mem, we_rf_exe, enable_alu;
 logic [WIDTH_VECTOR-1:0][N-1:0] wdata_rf, wdata_rf_mem;
@@ -40,11 +45,15 @@ logic zero;
 logic valid;
 logic [WIDTH_VECTOR-1:0][N-1:0] data_alu, data_alu_exe, data_alu_mem;
 logic [WIDTH_VECTOR-1:0][N-1:0] data_mem;
+
+logic [ALU_NUM-1:0] data_imm, data_imm_dec;
 // fetch
 instr_mem
     #(
         .WIDTH_INSTR    (WIDTH_INSTR),
-        .WIDTH_ADDR     (INSTR_MEM_WA)
+        .WIDTH_ADDR     (INSTR_MEM_WA),
+        .VENDOR         ("xilinx"),
+        .WIDTH_VECTOR   (WIDTH_VECTOR)
     )
 instr_mem
     (
@@ -71,7 +80,7 @@ controller
         .instr          (instr_fet),
         .addr_rega      (addr_rega),
         .addr_regb      (addr_regb),
-        .com            (com)
+        .opcode         (opcode),
 
         .valid          (valid),
         .next_instr     (next_instr),
@@ -82,7 +91,12 @@ controller
 
         .mem_alu        (mem_alu),
 
-        .jump_com       (jump_com),
+        .addr_instr     (addr_instr),
+
+        .zero           (zero),
+        .jump           (jump),
+
+        .data_imm       (data_imm),
     );
 
 
@@ -91,20 +105,29 @@ reg_file
         .WIDTH_ADDR     (WA_RF),
         .WIDTH_VECTOR   (WIDTH_VECTOR),
         .N              (N),
-        .VENDOR         ("xilinx")
+        .VENDOR         ("xilinx"),
+        .WA_FIFO        (WA_FIFO)
     )
 reg_file
     (
         .clk            (clk),
+        .rstn           (rstn)
         
         .addra          (addr_rega),
         .addrb          (addr_regb),
-        .rdata_a        (rdata_a_rf),
-        .rdata_b        (rdata_b_rf),
+        .rdata_a        (rdata_a_rf_dec),
+        .rdata_b        (rdata_b_rf_dec),
 
         .wec            (we_rf_mem),
         .addrc          (addr_rega_mem),
-        .wdata_c        (wdata_rf_mem)
+        .wdata_c        (wdata_rf_mem),
+
+        .fifo_full      (fifo_full),
+        .fifo_empty     (fifo_empty),
+        .fifo_wdata     (fifo_wdata),
+        .fifo_winc      (fifo_winc),
+        .fifo_wclk      (fifo_wclk),
+        .fifo_wrstn     (fifo_wrstn)
     );
 
 always_ff @(negedge rstn, posedge clk)
@@ -113,36 +136,36 @@ always_ff @(negedge rstn, posedge clk)
     else 
         jump_exe_t1 <= jump_exe; 
 
+assign fifo_empty_stop = fifo_empty && (addr_rega == 0 || addr_regb == 0)
+                         && (we_rf_mem == '1);
+
 always_ff @(negedge rstn, posedge clk)
     if(~rstn) begin
-        rdata_a_rf_dec <= 0;
-        rdata_b_rf_dec <= 0;
-        com_dec        <= 0;
+        opcode_dec     <= 0;
         we_rf_dec      <= 0;
         we_mem_dec     <= 0;
         mem_alu_dec    <= 0;
         addr_rega_dec  <= 0;
-        jump_com_dec   <= 0;      
+        addr_instr_dec <= 0;
+        data_imm_dec   <= 0;      
     end
-    else if(jump_exe || jump_exe_t1) begin
-        rdata_a_rf_dec <= 0;
-        rdata_b_rf_dec <= 0;
-        com_dec        <= 0;
+    else if(jump_exe || jump_exe_t1 || fifo_empty_stop) begin
+        opcode_dec        <= 0;
         we_rf_dec      <= 0;
         we_mem_dec     <= 0;
         mem_alu_dec    <= 0;
         addr_rega_dec  <= 0;
-        jump_com_dec   <= 0;      
+        addr_instr_dec <= 0;
+        data_imm_dec   <= 0;    
     end
     else begin
-        rdata_a_rf_dec <= rdata_a_rf;
-        rdata_b_rf_dec <= rdata_b_rf;
-        com_dec        <= com;
+        opcode_dec     <= opcode;
         we_rf_dec      <= we_rf;
         we_mem_dec     <= we_mem;
         mem_alu_dec    <= mem_alu;
         addr_rega_dec  <= addr_rega;
-        jump_com_dec   <= jump_com;
+        addr_instr_dec <= addr_instr;
+        data_imm_dec   <= data_imm;
     end
 // execute
 always_comb
@@ -176,9 +199,10 @@ execute
         .rstn           (rstn),
 
         .enable_alu     (we_rf_dec),
-        .instr          (com_dec),
+        .opcode         (opcode_dec),
         .dataA          (dataA),
         .dataB          (dataB),
+        .data_imm       (data_imm_dec),
 
         .valid          (valid),
         .zero           (zero),
@@ -196,7 +220,9 @@ always_ff @(negedge rstn, posedge clk)
         jump_exe       <= 0;
         we_jump_exe    <= 0;   
     end
-    else if(jump_exe || (mem_alu_exe && addr_rega_exe == addr_rega_dec)) begin
+    else if(jump_exe || 
+            (mem_alu_exe && addr_rega_exe == addr_rega_dec) ||
+            ~valid) begin
         addr_instr_exe <= 0;
         data_alu_exe   <= 0;
         we_mem_exe     <= 0;
@@ -206,15 +232,15 @@ always_ff @(negedge rstn, posedge clk)
         jump_exe       <= 0;
         we_jump_exe    <= 0;   
     end
-    else if(valid) begin
-        addr_instr_exe <= rdata_a_rf_dec[0][N-1:0];
+    else begin
+        addr_instr_exe <= addr_instr_dec;
         data_alu_exe   <= data_alu;
         we_mem_exe     <= we_mem_dec;
         mem_alu_exe    <= mem_alu_dec;
         we_rf_exe      <= we_rf_dec;
         addr_rega_exe  <= addr_rega_dec;
-        jump_exe       <= jump_com_dec && zero && (com_dec == 3'b100);
-        we_jump_exe    <= jump_com_dec && (com_dec == 3'b101);
+        jump_exe       <= jump_dec;//jump_com_dec && zero && (com_dec == 3'b100);
+        we_jump_exe    <= //jump_com_dec && (com_dec == 3'b101);
     end
 // memory
 simple_ram_vivado 

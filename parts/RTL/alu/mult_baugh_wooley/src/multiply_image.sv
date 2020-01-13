@@ -11,7 +11,7 @@ module multiply_image
     input  logic signed [(A_WIDTH-1):0] in_A,
     input  logic signed [(B_WIDTH-1):0] in_B,
     output logic signed [(A_WIDTH+B_WIDTH-1):0] out_C,
-    output logic reg out_valid     
+    output logic out_valid     
 );
 logic [(A_WIDTH+B_WIDTH-1):0] C_inside;
 
@@ -25,7 +25,7 @@ multiply
 multiply
     (
         .clk        (clk),
-        .resetn     (rstn),
+        .resetn     (resetn),
         .in_valid   (in_valid),
         .in_A       (in_A),
         .in_B       (in_B),

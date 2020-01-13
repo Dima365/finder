@@ -2,6 +2,7 @@ module instr_mem
 #(
     parameter WIDTH_INSTR = 8,
     parameter WIDTH_ADDR  = 8,
+    parameter WIDTH_VECTOR = 8,
     parameter VENDOR = "xilinx"
 )
 (
@@ -13,10 +14,10 @@ module instr_mem
 
     input  logic jump,
     input  logic we_jump,
-    input  logic [WIDTH_ADDR-1:0] data_jump
+    input  logic [WIDTH_VECTOR-1:0] data_jump
 );
 logic [WIDTH_ADDR-1:0] addr;
-logic [WIDTH_ADDR-1:0] data_jump_reg; 
+logic [WIDTH_VECTOR-1:0] data_jump_reg; 
 
 always_ff @(negedge rstn, posedge clk)
     if(~rstn)
@@ -32,7 +33,7 @@ always_ff @(negedge rstn, posedge clk)
 
 always_comb
     if(jump)
-        addr = addr_t + data_jump_reg;
+        addr = data_jump_reg;
     else 
         addr = addr_t + inc;
 
