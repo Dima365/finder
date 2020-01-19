@@ -7,8 +7,6 @@ module div_sign
     input   logic         i_clk,
     input   logic         i_rstn,
 
-    input   logic         both_image,// 0 not image
-
     input   logic         i_start,
     input   logic [N-1:0] i_dividend_sign,
     input   logic [N-1:0] i_divisor_sign,
@@ -32,25 +30,14 @@ always_comb
         i_divisor = i_divisor_sign[N-2:0];
 
 always_comb
-    case (both_image)
-        0:  if(i_dividend_sign[N-1] ^ i_divisor_sign[N-1])begin
-                o_quotient_sign[N-2:0] = ~o_quotient_out + 1;
-                o_quotient_sign[N-1]   = 1'b1;
-            end
-            else begin
-                o_quotient_sign[N-2:0] = o_quotient_out;
-                o_quotient_sign[N-1]   = 1'b0;
-            end
-        1:  if(i_dividend_sign[N-1] ^ i_divisor_sign[N-1])begin
-                o_quotient_sign[N-2:0] = o_quotient_out;
-                o_quotient_sign[N-1]   = 1'b0;
-            end
-            else begin
-                o_quotient_sign[N-2:0] = ~o_quotient_out + 1;
-                o_quotient_sign[N-1]   = 1'b1;                
-            end
-        default: o_quotient_sign = 0;
-    endcase
+    if(i_dividend_sign[N-1] ^ i_divisor_sign[N-1])begin
+        o_quotient_sign[N-2:0] = ~o_quotient_out + 1;
+        o_quotient_sign[N-1]   = 1'b1;
+    end
+    else begin
+        o_quotient_sign[N-2:0] = o_quotient_out;
+        o_quotient_sign[N-1]   = 1'b0;
+    end
 
 qdiv
     #(

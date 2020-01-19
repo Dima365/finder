@@ -1,41 +1,38 @@
 module instr_mem
 #(
-    parameter WIDTH_INSTR = 8,
-    parameter WIDTH_ADDR  = 8,
-    parameter WIDTH_VECTOR = 8,
-    parameter VENDOR = "xilinx"
+    parameter WIDTH_INSTR   = 8,
+    parameter WIDTH_ADDR    = 8,
+    parameter WIDTH_VECTOR  = 8,
+    parameter VENDOR = "xilinx",
+    parameter WIDTH_JDATA = 24
 )
 (
     input  logic rstn,
     input  logic clk,
 
-    input  logic inc,
-    output logic [WIDTH_INSTR-1:0] rdata,
+    input  logic opcode,
+
+    input  logic next_instr,
+    output logic [WIDTH_INSTR-1:0] instr,
 
     input  logic jump,
-    input  logic we_jump,
-    input  logic [WIDTH_VECTOR-1:0] data_jump
+    input  logic [WIDTH_JDATA-1:0] jdata
 );
-logic [WIDTH_ADDR-1:0] addr;
-logic [WIDTH_VECTOR-1:0] data_jump_reg; 
-
-always_ff @(negedge rstn, posedge clk)
-    if(~rstn)
-        addr <= 0;
-    else if(inc)
-        addr_t <= addr;
-
-always_ff @(negedge rstn, posedge clk)
-    if(~rstn)
-        data_jump_reg <= 0;
-    else if(we_jump)
-        data_jump_reg <= data_jump;
+logic [WIDTH_ADDR-1:0] addr, addr_t; 
 
 always_comb
-    if(jump)
-        addr = data_jump_reg;
+    if(opcode == 4'b1010 && jump)
+        addr = jdata[WIDTH_ADDR-1:0];
+    else if(opcode == 4'b1001 && jump)
+        addr = addr_t + jdata[WIDTH_VECTOR-1:0]; 
     else 
-        addr = addr_t + inc;
+        addr = addr_t + next_instr;
+
+always_ff @(negedge rstn, posedge clk)
+    if(~rstn)
+        addr_t <= 0;
+    else
+        addr_t <= addr;
 
 generate
     if(VENDOR == "xilinx")begin
@@ -52,7 +49,7 @@ generate
                 .clk        (clk),
                 .wec        (0),
                 .ena        (1'b1),
-                .douta      (rdata)
+                .douta      (instr)
             );
     end
 endgenerate

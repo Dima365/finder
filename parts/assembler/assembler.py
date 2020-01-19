@@ -1,9 +1,11 @@
 WA_RF = 
 WV = 
-mnem_list  = ['add' , 'mul' , 'div' , 'imul', 
-              'idiv', 'sw'  , 'lw'  , 'wjr' , 'beq' ]
-opcod_list = ['1000', '0000', '0100', '0010', 
-              '0110', '1110', '1100', '1011', '1001']
+mnem_list  = ['add' , 'and' , 'or'  , 'not' , 'mul' , 'div' , 'addi', 
+              'shfl', 'shfr', 'beq' , 'jmp' , 'sw'  , 'lw'  , 'nop' ]
+
+opcod_list = ['0000', '0001', '0010', '0011', '0100', '0101', '0110',
+              '0111', '1000', '1001', '1010', '1011', '1100', '1101']
+
 file_read  = input()
 f_read     = open(file_read)
 file_write = input()
@@ -17,6 +19,7 @@ for line in f_read:
         exit(0)             
     else:
         com_list.append(opcod_list[mnem_list.index(line[0])])
+        if com_list.append
         com_list.append(format(int(list[1][1:]), '0' + WA_RF + 'b')) 
             if com_list[0] != '1110' and com_list[0] != '1100'
                 com_list.append(format(int(reg[1:]), '0' + WA_RF + 'b'))     

@@ -4,11 +4,14 @@ module reg_file
     parameter WIDTH_VECTOR = 8,
     parameter N = 32,
     parameter VENDOR = "xilinx",
-    parameter WA_FIFO = 8
+    parameter WA_FIFO = 8,
+    parameter WIDTH_OPCODE = 4
 )
 (
     input  logic clk,    // Clock
     input  logic rstn,
+
+    input  logic [WIDTH_OPCODE-1:0] opcode,
 
     input  logic [WIDTH_ADDR-1:0] addra,
     input  logic [WIDTH_ADDR-1:0] addrb,
@@ -56,7 +59,21 @@ generate
     end
 endgenerate
 
-assign fifo_rinc = (wec == '1) && (addra == 0 || addrb == 0);
+always_comb
+    if(opcode >= 0 && opcode <= 5)
+        fifo_rinc = (addra == 0) || (addrb == 0);
+    else if(opcode > 5 && opcode <= 8)
+        fifo_rinc = (addra == 0)
+    else if(opcode == 4'b1001)
+        fifo_rinc = (addra == 0) || (addrb == 0);
+    else if(opcode == 4'b1010)
+        fifo_rinc = 1'b0;
+    else if(opcode == 4'b1011 || opcode == 4'b1100)
+        fifo_rinc = (addra == 0);
+    else if(opcode == 4'b1101)
+        fifo_rinc = 1'b0;
+    else
+        fifo_rinc = 1'b0;
 
 always_ff @(negedge rstn, posedge clk)
     if(rstn)
