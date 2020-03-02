@@ -14,7 +14,7 @@ module fifo_mem
     input  logic [ASIZE-1:0]  waddr,
     input  logic [DSIZE-1:0]  wdata,
     input  logic [ASIZE-1:0]  raddr,
-    output logic [DSIZE-1:0]  rdata,
+    output logic [DSIZE-1:0]  rdata
 );
 logic wea, enb;
 assign wea = wclken && ~wfull;
@@ -37,11 +37,11 @@ generate
                 .web        (1'b0),
                 .addra      (waddr),
                 .addrb      (raddr),
-                .dina       (wdata),
-                .dinb       (0),
+                .dia       (wdata),
+                .dib        ('0),
                 .doa        (),
                 .dob        (rdata)
-            )
+            );
     end
 endgenerate
 

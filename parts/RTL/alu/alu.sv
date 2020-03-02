@@ -51,7 +51,7 @@ always_comb
             4'b0100:  begin
                         enable_unit = 2'b01;
                         data_out    = data_unit [0];
-                        valid_unit  = valid_unit[0];
+                        valid       = valid_unit[0];
                       end
             4'b0101:  begin
                         enable_unit = 2'b10;
@@ -65,12 +65,22 @@ always_comb
                       end
             4'b1001:  begin
                         enable_unit = 2'b00;
-                        data_out    = dataA + ~data_B + 1;
+                        data_out    = dataA + ~dataB + 1;
                         valid       = 1'b1;                        
                       end
             4'b1011:  begin
                         enable_unit = 2'b00;
                         data_out    = dataA;
+                        valid       = 1'b1;                        
+                      end
+            4'b1110:  begin
+                        enable_unit = 2'b00;
+                        data_out    = dataA < dataB;
+                        valid       = 1'b1;                        
+                      end
+            4'b1111:  begin
+                        enable_unit = 2'b00;
+                        data_out    = dataA + ~dataB + 1;
                         valid       = 1'b1;                        
                       end
             default : begin
@@ -112,7 +122,6 @@ div_sign_i1
     (
         .i_clk              (clk),
         .i_rstn             (rstn),
-        .both_image         (both_image),
         .i_start            (enable_unit[1]),
         .i_dividend_sign    (dataA),
         .i_divisor_sign     (dataB),

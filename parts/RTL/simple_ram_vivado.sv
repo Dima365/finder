@@ -7,17 +7,18 @@ module simple_ram_vivado
 (
   input  [ASIZE-1:0] addra, 
   input  [DSIZE-1:0] dinc,          
-  input  clk,                        
+  input  clk,
+  input  rstn,                        
   input  wec,                           
   input  ena,
   output [DSIZE-1:0] douta
 );
-  wire [ASIZE-1:0] addra;  
-  wire [DSIZE-1:0] dinc;  
-  wire clk;             
-  wire wec;               
-  wire ena;                            
-  wire [DSIZE-1:0] douta;
+//  wire [ASIZE-1:0] addra;  
+//  wire [DSIZE-1:0] dinc;  
+//  wire clk;             
+//  wire wec;               
+//  wire ena;                            
+//  wire [DSIZE-1:0] douta;
 
   reg [DSIZE-1:0] ram [2**ASIZE-1:0];
   reg [DSIZE-1:0] ram_dataa = ram[0];
@@ -35,12 +36,15 @@ module simple_ram_vivado
     end
   endgenerate
 
-  always @(posedge clk) begin
+  always @(posedge clk)
     if (wec)
       ram[addra] <= dinc;
-    if (ena)
-      ram_dataa   <= ram[addra];
-  end
+
+  always @(negedge rstn, posedge clk)
+    if(~rstn)
+        ram_dataa <= 0;
+    else if (ena)
+        ram_dataa <= ram[addra];
 
     assign douta = ram_dataa;
                        

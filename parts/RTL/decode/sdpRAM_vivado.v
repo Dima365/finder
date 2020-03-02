@@ -16,13 +16,13 @@ module sdpRAM_vivado
   input  enb,                                                                        
   output [DSIZE-1:0] doutb 
 );
-  wire [ASIZE-1:0] addra; // Write address bus, width determined from RAM_DEPTH
-  wire [ASIZE-1:0] addrb; // Read address bus, width determined from RAM_DEPTH
-  wire [DSIZE-1:0] dina;  // RAM input data
-  wire clka;              // Clock
-  wire wea;               // Write enable
-  wire enb;               // Read Enable, for additional power savings, disable when not in use
-  wire [DSIZE-1:0] doutb; // RAM output data
+ // wire [ASIZE-1:0] addra; // Write address bus, width determined from RAM_DEPTH
+ // wire [ASIZE-1:0] addrb; // Read address bus, width determined from RAM_DEPTH
+ // wire [DSIZE-1:0] dina;  // RAM input data
+ // wire clka;              // Clock
+ // wire wea;               // Write enable
+ // wire enb;               // Read Enable, for additional power savings, disable when not in use
+ // wire [DSIZE-1:0] doutb; // RAM output data
 
   reg [DSIZE-1:0] ram [2**ASIZE-1:0];
   reg [DSIZE-1:0] ram_data = {DSIZE{1'b0}};

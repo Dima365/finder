@@ -13,7 +13,7 @@ module execute
     input  logic [WIDTH_OPCODE-1:0] opcode,
     input  logic signed [WIDTH_VECTOR-1:0][N-1:0] dataA,
     input  logic signed [WIDTH_VECTOR-1:0][N-1:0] dataB,
-    input  logic signed [WIDTH_VECTOR-1:0] data_imm
+    input  logic signed [WIDTH_VECTOR-1:0] data_imm,
 
     output logic valid,
     output logic zero,
@@ -32,7 +32,7 @@ always_comb
     else if(opcode == 4'b1000)
         data_out = dataA >> N*data_imm;
     else 
-        data_out = data_out_inside
+        data_out = data_out_inside;
 
 always_comb
     if(opcode == 4'b0100 || opcode == 4'b1000)
@@ -61,13 +61,12 @@ generate
             .opcode     (opcode),
             .dataA      (dataA[i]),
             .dataB      (dataB[i]),
-            .data_imm   (data_imm)
+            .data_imm   (data_imm),
 
             .valid      (valid_alu[i]),
             .zero       (zero_alu[i]),
             .data_out   (data_out_alu[i])
         );
-    end
     end
 endgenerate
 

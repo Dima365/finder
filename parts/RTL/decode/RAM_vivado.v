@@ -16,16 +16,16 @@ module RAM_vivado
   output [DSIZE-1:0] douta,                                                                        
   output [DSIZE-1:0] doutb 
 );
-  wire [ASIZE-1:0] addra; 
-  wire [ASIZE-1:0] addrb; 
-  wire [ASIZE-1:0] addrb; 
-  wire [DSIZE-1:0] dinc;  
-  wire clk;             
-  wire wec;               
-  wire ena;              
-  wire enb;               
-  wire [DSIZE-1:0] douta;
-  wire [DSIZE-1:0] doutb; 
+  //wire [ASIZE-1:0] addra; 
+  //wire [ASIZE-1:0] addrb; 
+  //wire [ASIZE-1:0] addrb; 
+  //wire [DSIZE-1:0] dinc;  
+  //wire clk;             
+  //wire wec;               
+  //wire ena;              
+  //wire enb;               
+  //wire [DSIZE-1:0] douta;
+  //wire [DSIZE-1:0] doutb; 
 
   reg [DSIZE-1:0] ram [2**ASIZE-1:0];
   reg [DSIZE-1:0] ram_dataa = {DSIZE{1'b0}};

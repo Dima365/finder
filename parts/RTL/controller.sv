@@ -10,7 +10,7 @@ module controller
 (
     input  logic [WIDTH_INSTR-1:0]  instr,
     input  logic valid,
-    input  logic opcode_exe,
+    input  logic [WIDTH_OPCODE-1:0] opcode_exe,
     input  logic zero,
     input  logic exe_flush,
 
@@ -31,6 +31,7 @@ localparam WO = WIDTH_OPCODE;
 
 assign opcode = instr[WI-1:WI-WO];
 assign {addr_rega,addr_regb} = instr[WI-WO-1:WI-WO-2*WA_RF];
+assign mem_addr = instr[WI-WO-WA_RF-1:0];
 
 always_comb
     if(opcode_exe == 4'b1001 || opcode_exe == 4'b1010)
@@ -58,7 +59,9 @@ always_comb
         jump = 1'b0;
 
 always_comb
-    if( opcode != 4'b1001 &&
+    if(opcode == 4'b0110)
+            we_rf = '1;
+    else if( opcode != 4'b1001 &&
         opcode != 4'b1010 &&
         opcode != 4'b1101)
             we_rf = instr[WIDTH_VECTOR-1:0];

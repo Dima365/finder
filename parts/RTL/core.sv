@@ -2,18 +2,16 @@ module core
 #(
     parameter MEM_WA       = 8,
     parameter INSTR_MEM_WA = 8,
-    parameter WIDTH_VECTOR = 8, // have to be 2**N
-    parameter N            = 32, //have to N < WIDTH_VECTOR
-    parameter WA_RF        = 8,
-    parameter WA_FIFO      = 8,
+    parameter WIDTH_VECTOR = 16, // have to be 2**N
+    parameter N            = 16, //have to N < WIDTH_VECTOR
+    parameter Q            = 4, 
+    parameter WA_RF        = 4,
+    parameter WA_FIFO      = 6,
     parameter WIDTH_OPCODE = 4
 )
 (
     input  logic clk,
     input  logic rstn,
-
-    input  logic clkf,
-    input  logic rstnf,
 
     output logic fifo_full,
     input  logic [WIDTH_VECTOR-1:0][N-1:0] fifo_wdata,
@@ -27,28 +25,30 @@ localparam WA_MEM_SIGN = WIDTH_VECTOR + WA_RF;
 
 logic next_instr;
 logic [WIDTH_INSTR-1:0] instr_dec;
-logic jump;
+logic jump, jump_exe, jump_mem, jump_wb;
 logic [WIDTH_JDATA-1:0] jdata, jdata_exe, jdata_mem, jdata_wb;
 
 logic [WA_RF-1:0] addr_rega, addr_rega_exe, addr_rega_mem, addr_rega_wb;
-logic [WA_RF-1:0] addr_regb;
+logic [WA_RF-1:0] addr_regb, addr_regb_exe;
 logic [WIDTH_OPCODE-1:0] opcode, opcode_dec, opcode_exe;
-logic mem_we, mem_we_dec, mem_we_exe;
+logic mem_we, mem_we_dec, mem_we_exe, mem_we_mem;
 logic mem_alu, mem_alu_dec, mem_alu_exe, mem_alu_mem, mem_alu_wb;
 logic [WIDTH_VECTOR-1:0][N-1:0] dataA, dataB;
 logic [WA_MEM_SIGN-1:0] mem_addr, mem_addr_exe, mem_addr_mem;
 
 logic [WIDTH_VECTOR-1:0][N-1:0] rdata_a_rf_exe, rdata_b_rf_exe;
-logic [WIDTH_VECTOR-1:0] we_rf, we_rf_mem, we_rf_exe; 
+logic [WIDTH_VECTOR-1:0] we_rf, we_rf_mem, we_rf_exe, we_rf_wb; 
 logic [WIDTH_VECTOR-1:0] enable_alu;
 logic [WIDTH_VECTOR-1:0][N-1:0] wdata_rf_wb;
+
+logic exe_flush;
 
 logic zero;
 logic valid;
 logic [WIDTH_VECTOR-1:0][N-1:0] data_alu, data_alu_mem, data_alu_wb;
 logic [WIDTH_VECTOR-1:0][N-1:0] mem_data_mem;
 
-logic [ALU_NUM-1:0] data_imm, data_imm_exe;
+logic [WIDTH_VECTOR-1:0] data_imm, data_imm_exe;
 // fetch
 instr_mem
     #(
@@ -56,14 +56,15 @@ instr_mem
         .WIDTH_ADDR     (INSTR_MEM_WA),
         .VENDOR         ("xilinx"),
         .WIDTH_VECTOR   (WIDTH_VECTOR),
-        .WIDTH_JDATA    (WIDTH_JDATA)
+        .WIDTH_JDATA    (WIDTH_JDATA),
+        .WIDTH_OPCODE   (WIDTH_OPCODE)
     )
 instr_mem
     (
         .rstn           (rstn),
         .clk            (clk),
 
-        .opcode         (opcode)
+        .opcode         (opcode),
 
         .next_instr     (next_instr),
         .instr          (instr_dec),
@@ -116,12 +117,14 @@ reg_file
 reg_file
     (
         .clk            (clk),
-        .rstn           (rstn)
+        .rstn           (rstn),
         
+        .opcode         (opcode),
+
         .addra          (addr_rega),
         .addrb          (addr_regb),
-        .rdata_a        (rdata_a_rf_exe),
-        .rdata_b        (rdata_b_rf_exe),
+        .rdata_a_rf     (rdata_a_rf_exe),
+        .rdata_b_rf     (rdata_b_rf_exe),
 
         .wec            (we_rf_wb),
         .addrc          (addr_rega_wb),
@@ -181,23 +184,41 @@ always_ff @(negedge rstn, posedge clk)
     end
 
 always_comb
-    if( we_rf_wb  != 0 && 
+    if(opcode_exe == 4'b1001 && addr_rega_mem == addr_rega_exe)
+        dataA = data_alu_mem;
+    else if (opcode_exe == 4'b1001 && addr_rega_wb == addr_rega_exe)
+        dataA = wdata_rf_wb;
+    else if( we_rf_mem != 0 && 
         we_rf_exe != 0 && 
-        addr_rega_wb == addr_rega_exe)
+        addr_rega_mem == addr_rega_exe)
+            dataA = data_alu_mem;
+    else if( we_rf_wb  != 0 && 
+             we_rf_exe != 0 && 
+             addr_rega_wb == addr_rega_exe)
             dataA = wdata_rf_wb;
     else 
             dataA = rdata_a_rf_exe;
 
 always_comb
-    if( we_rf_wb  != 0 && 
+    if(opcode_exe == 4'b1001 && addr_rega_mem == addr_regb_exe)
+        dataB = data_alu_mem;
+    else if (opcode_exe == 4'b1001 && addr_rega_wb == addr_regb_exe)
+        dataB = wdata_rf_wb;
+    else if( we_rf_mem != 0 && 
         we_rf_exe != 0 && 
-        addr_rega_wb == addr_regb_exe)
+        addr_rega_mem == addr_regb_exe)
+            dataB = data_alu_mem;
+    else if( we_rf_wb  != 0 && 
+             we_rf_exe != 0 && 
+             addr_rega_wb == addr_regb_exe)
             dataB = wdata_rf_wb;
     else 
             dataB = rdata_b_rf_exe;
 
 always_comb
-    if(opcode_exe != 4'b1011 && opcode_exe != 4'b1100)
+    if(opcode_exe == 4'b1001)
+        enable_alu = '1;
+    else if(opcode_exe != 4'b1011 && opcode_exe != 4'b1100)
         enable_alu = we_rf_exe;
     else 
         enable_alu = 0;
@@ -262,7 +283,7 @@ simple_ram_vivado
         .wec            (mem_we_exe),
         .ena            (1'b1),
         .douta          (mem_data_mem)
-    )
+    );
 
 //writeback
 always_ff @(negedge rstn, posedge clk)

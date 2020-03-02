@@ -15,8 +15,8 @@ module reg_file
 
     input  logic [WIDTH_ADDR-1:0] addra,
     input  logic [WIDTH_ADDR-1:0] addrb,
-    output logic [WIDTH_VECTOR-1:0][N-1:0] rdata_a_rf
-    output logic [WIDTH_VECTOR-1:0][N-1:0] rdata_b_rf
+    output logic [WIDTH_VECTOR-1:0][N-1:0] rdata_a_rf,
+    output logic [WIDTH_VECTOR-1:0][N-1:0] rdata_b_rf,
 
     input  logic [WIDTH_VECTOR-1:0] wec,
     input  logic [WIDTH_ADDR-1:0]   addrc,
@@ -52,7 +52,7 @@ generate
                     .enb        (1'b1),
                     .douta      (rdata_a[i]),
                     .doutb      (rdata_b[i])
-                )
+                );
             assign rdata_a_rf[i] = (fifo_en_read) ? fifo_rdata[i] : rdata_a[i];
             assign rdata_b_rf[i] = (fifo_en_read) ? fifo_rdata[i] : rdata_b[i];
         end
@@ -63,7 +63,7 @@ always_comb
     if(opcode >= 0 && opcode <= 5)
         fifo_rinc = (addra == 0) || (addrb == 0);
     else if(opcode > 5 && opcode <= 8)
-        fifo_rinc = (addra == 0)
+        fifo_rinc = (addra == 0);
     else if(opcode == 4'b1001)
         fifo_rinc = (addra == 0) || (addrb == 0);
     else if(opcode == 4'b1010)
