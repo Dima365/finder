@@ -4,12 +4,13 @@ and  r4 r0 ffff
 and  r5 r0 ffff
 and  r7 r0 ffff
 adi  r2 5
-adi  r3 12
-adi  r8 3 
+adi  r3 c
+adi  r8 9 
 not  r8 r0 ffff
 adi  r8 1
 add  r7 r8 ffff
 and  r8 r0 ffff
+add  r7 r3 ffff
 add  r4 r7 ffff
 or   r4 r2 ffff
 add  r5 r3 ffff
@@ -30,6 +31,12 @@ sub  r7 r2 ffff
 sw   r7 80
 lw   r2 80
 jmp  end
-adi r2 1  ffff   
+adi  r2 1  ffff   
 end:
-sw   r2 84 
+sw   r2 84
+nop  r0 r0 ffff
+nop  r0 r0 ffff
+nop  r0 r0 ffff
+nop  r0 r0 ffff
+nop  r0 r0 ffff
+nop  r0 r0 ffff

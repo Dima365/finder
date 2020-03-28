@@ -83,6 +83,11 @@ always_comb
                         data_out    = dataA + ~dataB + 1;
                         valid       = 1'b1;                        
                       end
+            4'b1011:  begin
+                        enable_unit = 2'b00;
+                        data_out    = dataA;
+                        valid       = 1'b1;                        
+                      end
             default : begin
                         enable_unit = 2'b00;
                         data_out    = 0;

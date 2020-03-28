@@ -44,9 +44,12 @@ module RAM_vivado
     end
   endgenerate
 
-  always @(posedge clk) begin
+  always @(negedge clk) begin
     if (wec)
       ram[addrc] <= dinc;
+  end
+
+  always @(posedge clk) begin
     if (ena)
       ram_dataa   <= ram[addra];
     if (enb)

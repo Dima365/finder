@@ -8,7 +8,7 @@ mnem_list  = ['add' , 'and' , 'or'  , 'not' , 'mul' , 'div' , 'adi',  'shfl',
 opcod_list = ['0000', '0001', '0010', '0011', '0100', '0101', '0110', '0111', 
               '1000', '1001', '1010', '1011', '1100', '1101', '1110', '1111']
 
-type_r   = ['add' , 'and' , 'or'  , 'not', 'mul', 'div', 'slt', 'sub']
+type_r   = ['add' , 'and' , 'or'  , 'not', 'mul', 'div', 'slt', 'sub', 'nop']
 type_i   = ['adi' , 'shfl', 'shfr']
 type_mem = ['sw'  , 'lw'  ]
 type_if  = ['beq' ]
@@ -28,6 +28,7 @@ for line in f_read:
         mark_list.append(line[0])
         print(mark_list)
         addr_list.append(i)
+        print(addr_list)
     else:
         i = i + 1
 f_read.close()
@@ -37,9 +38,8 @@ file_write = '../sim/mach.txt' #input()
 f_write    = open(file_write, 'wt')
 
 
-
+i = 0
 for line in f_read:
-    i = 0
     line = line.split()
     com_list  = []
     print(line)
@@ -64,7 +64,7 @@ for line in f_read:
         elif type_if.count(line[0]) != 0:
             com_list.append(format(int(line[1][1:],16), '0' + WA_RF + 'b'))
             com_list.append(format(int(line[2][1:],16), '0' + WA_RF + 'b'))
-            jump = int(addr_list[mark_list.index(line[3] + ':')]) - i
+            jump = int(addr_list[mark_list.index(line[3] + ':')]) - i - 1
             com_list.append(format(jump,'0' + WV + 'b')) 
         elif type_j.count(line[0]) != 0:
             com_list.append(format(int(addr_list[mark_list.index(line[1] + ':')]),'0'+WIDTH_JDATA+'b'))

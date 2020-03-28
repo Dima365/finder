@@ -59,7 +59,7 @@ always_comb
         jump = 1'b0;
 
 always_comb
-    if(opcode == 4'b0110)
+    if(opcode == 4'b0110 || opcode == 4'b1100)
             we_rf = '1;
     else if( opcode != 4'b1001 &&
         opcode != 4'b1010 &&

@@ -60,7 +60,7 @@ generate
 endgenerate
 
 always_comb
-    if(opcode >= 0 && opcode <= 5)
+    if((opcode >= 0 && opcode <= 5) || opcode == 4'b1111)
         fifo_rinc = (addra == 0) || (addrb == 0);
     else if(opcode > 5 && opcode <= 8)
         fifo_rinc = (addra == 0);

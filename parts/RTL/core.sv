@@ -64,7 +64,7 @@ instr_mem
         .rstn           (rstn),
         .clk            (clk),
 
-        .opcode         (opcode),
+        .opcode         (opcode_exe),
 
         .next_instr     (next_instr),
         .instr          (instr_dec),
@@ -220,6 +220,8 @@ always_comb
         enable_alu = '1;
     else if(opcode_exe != 4'b1011 && opcode_exe != 4'b1100)
         enable_alu = we_rf_exe;
+    else if(opcode_exe == 4'b1011)
+        enable_alu = '1;
     else 
         enable_alu = 0;
 
@@ -280,7 +282,7 @@ simple_ram_vivado
         .addra          (mem_addr_mem),
         .dinc           (data_alu_mem),
         .clk            (clk),
-        .wec            (mem_we_exe),
+        .wec            (mem_we_mem),
         .ena            (1'b1),
         .douta          (mem_data_mem)
     );

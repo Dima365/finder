@@ -31,7 +31,7 @@ always_comb
 
 always_ff @(negedge rstn, posedge clk)
     if(~rstn)
-        addr_t <= 0;
+        addr_t <= '1;
     else
         addr_t <= addr;
 
@@ -47,7 +47,7 @@ generate
             )
         simple_ram_vivado
             (
-                .addra      (addr_t),
+                .addra      (addr),
                 .dinc       ('0),
                 .clk        (clk),
                 .rstn       (rstn),
